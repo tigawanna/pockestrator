@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Pockestrator</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect fill="#11A9BC" x="0" y="0" width="32" height="32" rx="4"></rect>
+        <path d="M8,8 L24,8 C26.209139,8 28,9.790861 28,12 L28,20 C28,22.209139 26.209139,24 24,24 L8,24 C5.790861,24 4,22.209139 4,20 L4,12 C4,9.790861 5.790861,8 8,8 Z" stroke="#FFFFFF" stroke-width="2"></path>
+        <circle fill="#FFFFFF" cx="16" cy="16" r="4"></circle>
+    </g>
+</svg>

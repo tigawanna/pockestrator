@@ -1,0 +1,28 @@
+{
+  "name": "pockestrator-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "build:prod": "npm run clean && npm run build",
+    "clean": "rm -rf dist",
+    "watch": "vite build --watch"
+  },
+  "dependencies": {
+    "preact": "^10.19.3",
+    "preact-router": "^4.1.2"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.7.0",
+    "@types/node": "^20.10.5",
+    "autoprefixer": "^10.4.16",
+    "daisyui": "^4.4.24",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
+  }
+}

@@ -24,12 +24,12 @@ type PocketBaseManagerImpl struct {
 }
 
 // NewPocketBaseManager creates a new PocketBase manager instance
-func NewPocketBaseManager(baseDir string) *PocketBaseManagerImpl {
+func NewPocketBaseManager() *PocketBaseManagerImpl {
 	return &PocketBaseManagerImpl{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		baseDir: baseDir,
+		baseDir: "/home/ubuntu",
 	}
 }
 
@@ -127,8 +127,8 @@ func (pm *PocketBaseManagerImpl) CreateSuperUser(projectName string, email strin
 	return nil
 }
 
-// getLatestVersion fetches the latest PocketBase version from GitHub API
-func (pm *PocketBaseManagerImpl) getLatestVersion() (string, error) {
+// GetLatestVersion fetches the latest PocketBase version from GitHub API
+func (pm *PocketBaseManagerImpl) GetLatestVersion() (string, error) {
 	resp, err := pm.httpClient.Get("https://api.github.com/repos/pocketbase/pocketbase/releases/latest")
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch latest release: %w", err)
@@ -160,6 +160,58 @@ func (pm *PocketBaseManagerImpl) getLatestVersion() (string, error) {
 
 	version := bodyStr[tagStart : tagStart+tagEnd]
 	return version, nil
+}
+
+// GetAvailableVersions fetches available PocketBase versions from GitHub API
+func (pm *PocketBaseManagerImpl) GetAvailableVersions() ([]string, error) {
+	resp, err := pm.httpClient.Get("https://api.github.com/repos/pocketbase/pocketbase/releases?per_page=10")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch releases: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+	}
+
+	// Simple JSON parsing to extract tag_names
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	bodyStr := string(body)
+	versions := []string{}
+
+	// Extract versions from tag_names
+	offset := 0
+	for {
+		tagStart := strings.Index(bodyStr[offset:], `"tag_name":"v`)
+		if tagStart == -1 {
+			break
+		}
+
+		tagStart += len(`"tag_name":"v`)
+		offset += tagStart
+
+		tagEnd := strings.Index(bodyStr[offset:], `"`)
+		if tagEnd == -1 {
+			break
+		}
+
+		version := bodyStr[offset : offset+tagEnd]
+		versions = append(versions, version)
+
+		offset += tagEnd
+	}
+
+	return versions, nil
+}
+
+// getLatestVersion is a private method that calls the public GetLatestVersion
+// This is kept for backward compatibility with existing code
+func (pm *PocketBaseManagerImpl) getLatestVersion() (string, error) {
+	return pm.GetLatestVersion()
 }
 
 // downloadFile downloads a file from the given URL to the specified path

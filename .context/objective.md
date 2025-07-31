@@ -103,7 +103,8 @@ you should break all the steps into go packages organized tidily in this priject
 
 The inputs should be project name , optional pocketbase version ( defaults to the latest version available)  and port ( defaults to the 8091 or the last part used + 1 if the last service was registerd wit 8091 the next should be 8091 , if the user provieded port or name exists it should throw an error on te dashbord that's picking it  )
 
-we should have a dashboard that allows one to view the list of regisered projects and every project when listed should do a query to check if the config reqired for it to exst ( caddy and sysytemd ) are still correct , then a squigle should be shown forthe user to act upon 
+we should have a dashboard that allows one to view the list of regisered projects and every project when listed should do a query to check if the config reqired for it to exst ( caddy and sysytemd ) are still correct , then a squigle should be shown forthe user to act upon , This should be a react app with tailwind + shadcn for the component librray and tanstack query for the data fetching , if any global state is required use zustand . as we're extending pocletbase most ofthe intrecations will pobably happen through the pocketbase api and the react app will be a client to that api wit the pocketbase sent
+it should also use tantsck router for routing , but most importantly once the project is built as html css and js the resources should be embeddedinto the go binary dso it can be distributed as a single binary see #fetch : https://bindplane.com/blog/embed-react-in-golang
 
 the detailed view of every regieted project should query the values saved to a pocketbase collection to ensure they math the actula values on te sytem e
 g schek if the port regieted ipocket base matches whet we have in the caddy config and the port the ecex command in it's accompanying systemd config
@@ -111,24 +112,24 @@ g schek if the port regieted ipocket base matches whet we have in the caddy conf
 we will be usisng pocketbase as a framework and add these steps 
 ideally creating a new "service"
 
-Intro #URLhttps://pocketbase.io/docs/go-overview/
-Schedule job #URLhttps://pocketbase.io/docs/go-jobs-scheduling/
-Sending emails #URLhttps://pocketbase.io/docs/go-sending-emails/
+Intro #fetch: https://pocketbase.io/docs/go-overview/
+Schedule job #fetch: https://pocketbase.io/docs/go-jobs-scheduling/
+Sending emails #fetch: https://pocketbase.io/docs/go-sending-emails/
 
 Record event hooks
-#URLhttps://pocketbase.io/docs/go-event-hooks/#onrecordcreate
-#URLhttps://pocketbase.io/docs/go-event-hooks/#onrecordcreateexecute
-#URLhttps://pocketbase.io/docs/go-event-hooks/#onrecordaftercreatesuccess
-#URLhttps://pocketbase.io/docs/go-event-hooks/#onrecordaftercreatesuccess
+#fetch: https://pocketbase.io/docs/go-event-hooks/#onrecordcreate
+#fetch: https://pocketbase.io/docs/go-event-hooks/#onrecordcreateexecute
+#fetch: https://pocketbase.io/docs/go-event-hooks/#onrecordaftercreatesuccess
+#fetch: https://pocketbase.io/docs/go-event-hooks/#onrecordaftercreatesuccess
 
 record model event hooks
-#URLhttps://pocketbase.io/docs/go-records/
+#fetch: https://pocketbase.io/docs/go-records/
 
 collection model hooks
-#URLhttps://pocketbase.io/docs/go-collections/
+#fetch: https://pocketbase.io/docs/go-collections/
 
 database hooks and custom queries
-#URLhttps://pocketbase.io/docs/go-database/
+#fetch: https://pocketbase.io/docs/go-database/
 
 the collection services and creatinga new row should
  - create a new systemd service file
