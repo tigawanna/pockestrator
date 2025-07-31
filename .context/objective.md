@@ -1,8 +1,12 @@
-# pockestrator
+# Pockestrator - PocketBase Instance Manager
 
-This is supposed to be a project that manges pocketbase instances
+## Project Overview
 
-When installed on a linux box it should ensure caddy is installed and configuered properly and should mimick bashscript below
+A Go application using PocketBase as a framework to manage multiple PocketBase instances on Linux systems. This project automates the deployment, configuration, and monitoring of PocketBase instances with systemd services and Caddy reverse proxy integration.
+
+## Core Requirements
+
+The application should replicate the functionality of the following bash script while providing a programmatic interface:
 
 ```sh
 #!/usr/bin/env bash
@@ -99,43 +103,183 @@ echo "Service: ${project_name}-pocketbase.service"
 ```
 
 
-you should break all the steps into go packages organized tidily in this priject to hadle a little bit of the above to tie together into a prject witha dashbord that allows you to list you regisred "services " which also double as system d services mapped to caddy config
+## Architecture Requirements
 
-The inputs should be project name , optional pocketbase version ( defaults to the latest version available)  and port ( defaults to the 8091 or the last part used + 1 if the last service was registerd wit 8091 the next should be 8091 , if the user provieded port or name exists it should throw an error on te dashbord that's picking it  )
+### Go Package Structure
+Organize the project into well-defined Go packages:
 
-we should have a dashboard that allows one to view the list of regisered projects and every project when listed should do a query to check if the config reqired for it to exst ( caddy and sysytemd ) are still correct , then a squigle should be shown forthe user to act upon , This should be a react app with tailwind + shadcn for the component librray and tanstack query for the data fetching , if any global state is required use zustand . as we're extending pocletbase most ofthe intrecations will pobably happen through the pocketbase api and the react app will be a client to that api wit the pocketbase sent
-it should also use tantsck router for routing , but most importantly once the project is built as html css and js the resources should be embeddedinto the go binary dso it can be distributed as a single binary see #fetch : https://bindplane.com/blog/embed-react-in-golang
+1. **Service Management Package**
+   - PocketBase instance creation and configuration
+   - Version management and downloads
+   - Binary extraction and permissions setup
 
-the detailed view of every regieted project should query the values saved to a pocketbase collection to ensure they math the actula values on te sytem e
-g schek if the port regieted ipocket base matches whet we have in the caddy config and the port the ecex command in it's accompanying systemd config
+2. **SystemD Integration Package**
+   - Service file generation and management
+   - Service lifecycle operations (enable/start/stop/restart)
+   - Process monitoring and health checks
 
-we will be usisng pocketbase as a framework and add these steps 
-ideally creating a new "service"
+3. **Caddy Configuration Package**
+   - Configuration file parsing and updates
+   - Subdomain routing setup
+   - SSL/TLS certificate management
+   - Reverse proxy configuration
 
-Intro #fetch: https://pocketbase.io/docs/go-overview/
-Schedule job #fetch: https://pocketbase.io/docs/go-jobs-scheduling/
-Sending emails #fetch: https://pocketbase.io/docs/go-sending-emails/
+4. **Validation Package**
+   - Configuration consistency checks
+   - Port availability validation
+   - System requirements verification
 
-Record event hooks
-#fetch: https://pocketbase.io/docs/go-event-hooks/#onrecordcreate
-#fetch: https://pocketbase.io/docs/go-event-hooks/#onrecordcreateexecute
-#fetch: https://pocketbase.io/docs/go-event-hooks/#onrecordaftercreatesuccess
-#fetch: https://pocketbase.io/docs/go-event-hooks/#onrecordaftercreatesuccess
+5. **Database Package**
+   - PocketBase collection management
+   - Service registry and tracking
+   - Configuration history and audit logs
 
-record model event hooks
-#fetch: https://pocketbase.io/docs/go-records/
+### Input Parameters & Validation
 
-collection model hooks
-#fetch: https://pocketbase.io/docs/go-collections/
+**Required Parameters:**
+- `project_name`: Unique identifier for the service
 
-database hooks and custom queries
-#fetch: https://pocketbase.io/docs/go-database/
+**Optional Parameters:**
+- `pocketbase_version`: Defaults to latest available version
+- `port`: Defaults to 8091 or increments from last used port (8091 → 8092 → 8093...)
+- `domain`: Base domain for subdomain generation (defaults to configured domain)
 
-the collection services and creatinga new row should
- - create a new systemd service file
- - add a new caddy config to the Caddyfile
- - create a new pocketbase service with the provided name and port
-- - the row should then be created as usual
+**Validation Rules:**
+- Project names must be unique across all instances
+- Ports must be unique and within valid range (1024-65535)
+- Version numbers must exist in PocketBase releases
+- Domain names must be valid and accessible
+
+### PocketBase Framework Integration
+
+Implement using PocketBase's Go framework with the following components:
+
+#### Event Hooks Implementation
+```go
+// Service lifecycle hooks
+app.OnRecordCreate("services").Add(func(e *core.RecordCreateEvent) error {
+    // Create systemd service file
+    // Update Caddy configuration
+    // Deploy PocketBase instance
+    return nil
+})
+
+app.OnRecordUpdate("services").Add(func(e *core.RecordUpdateEvent) error {
+    // Validate configuration changes
+    // Update system configurations
+    return nil
+})
+
+app.OnRecordDelete("services").Add(func(e *core.RecordDeleteEvent) error {
+    // Clean up systemd service
+    // Remove Caddy configuration
+    // Archive instance data
+    return nil
+})
+```
+
+#### Database Schema
+**Services Collection:**
+```json
+{
+  "name": "services",
+  "schema": [
+    {"name": "project_name", "type": "text", "required": true, "unique": true},
+    {"name": "port", "type": "number", "required": true, "unique": true},
+    {"name": "pocketbase_version", "type": "text", "required": true},
+    {"name": "domain", "type": "text", "required": true},
+    {"name": "status", "type": "select", "options": ["active", "inactive", "error"]},
+    {"name": "systemd_config_hash", "type": "text"},
+    {"name": "caddy_config_hash", "type": "text"},
+    {"name": "last_health_check", "type": "date"},
+    {"name": "created_by", "type": "relation", "relatedCollection": "users"}
+  ]
+}
+```
+
+#### Scheduled Jobs
+```go
+// Health check job
+app.OnJobsScheduled().Add(func(jobsMap map[string]cron.Cron) error {
+    jobsMap["health_check"] = func() {
+        // Check service status
+        // Validate configurations
+        // Update database records
+    }
+    return nil
+})
+```
+
+### System Integration Requirements
+
+#### Prerequisite Management
+- Verify Caddy installation and configuration
+- Ensure systemd is available and functional
+- Check user permissions for service management
+- Validate network port availability
+
+#### Service Deployment Process
+1. **Download & Extract**: Fetch specified PocketBase version
+2. **Directory Setup**: Create service directory structure
+3. **Binary Setup**: Set proper permissions and ownership
+4. **SystemD Service**: Generate and install service files
+5. **Caddy Configuration**: Update reverse proxy settings
+6. **Service Start**: Enable and start the service
+7. **Superuser Creation**: Initialize admin user
+8. **Health Verification**: Confirm service is running correctly
+
+#### Configuration Management
+- Generate systemd service files with proper security settings
+- Create Caddy reverse proxy configurations with headers
+- Implement configuration templates for consistency
+- Support for custom configuration overrides
+
+### Error Handling & Recovery
+
+#### Validation Errors
+- Duplicate project names or ports
+- Invalid PocketBase versions
+- Insufficient system resources
+- Permission or access issues
+
+#### Deployment Failures
+- Download or extraction errors
+- Service creation failures
+- Configuration conflicts
+- Network or firewall issues
+
+#### Recovery Mechanisms
+- Rollback failed deployments
+- Clean up partial installations
+- Restore previous configurations
+- Detailed error logging and reporting
+
+### Binary Distribution
+
+The final application must be:
+- Compiled as a single Go binary
+- Include embedded web assets from `/dashboard/dist`
+- Support cross-platform deployment (focus on Linux amd64/arm64)
+- Include version information and build metadata
+- Support CLI commands for headless operation
+
+### Security Considerations
+
+- Run services with minimal required privileges
+- Implement proper file permissions and ownership
+- Secure API endpoints with authentication
+- Validate all user inputs and configurations
+- Implement audit logging for all operations
+
+### Performance Requirements
+
+- Support concurrent service management operations
+- Efficient configuration file parsing and updates
+- Minimal resource overhead for monitoring
+- Fast service deployment (under 30 seconds per instance)
+- Scalable to manage 50+ PocketBase instances
+
+This enhanced architecture provides a robust foundation for the PocketBase instance manager while maintaining clean separation of concerns and following Go best practices.
 
 
 
